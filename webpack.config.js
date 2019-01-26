@@ -1,5 +1,10 @@
 var path = require('path')
 var webpack = require('webpack')
+var FriendlyErrorsWebpackPlugin = require('friendly-errors-webpack-plugin')
+
+const devSSL = process.env.DEV_SSL || true
+const devHost = process.env.DEV_HOST || 'devwook.com'
+const devPort = process.env.DEV_PORT || '8080'
 
 module.exports = {
   entry: './src/main.js',
@@ -10,6 +15,16 @@ module.exports = {
   },
   module: {
     rules: [
+      {
+        test: /\.(js|vue)$/,
+        loader: 'eslint-loader',
+        enforce: 'pre',
+        include: [path.resolve('src')],
+        options: {
+          formatter: require('eslint-friendly-formatter'),
+          emitWarning: true
+        }
+      },
       {
         test: /\.css$/,
         use: [
@@ -69,6 +84,13 @@ module.exports = {
       }
     ]
   },
+  plugins: [
+    new FriendlyErrorsWebpackPlugin({
+      compilationSuccessInfo: {
+        messages: [`You application is running here http${devSSL?'s':''}://${devHost}:${devPort}`]
+      }
+    })
+  ],
   resolve: {
     alias: {
       'vue$': 'vue/dist/vue.esm.js'
@@ -78,7 +100,10 @@ module.exports = {
   devServer: {
     historyApiFallback: true,
     noInfo: true,
-    overlay: true
+    overlay: true,
+    port: devPort,
+    https: devSSL,
+    host: devHost
   },
   performance: {
     hints: false
